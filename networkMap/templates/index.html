@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Diagram</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.0/cytoscape.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #network {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        .navbar {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Network Diagram</a>
+    </nav>
+    <div class="container">
+        <h1 class="text-center">Visualize Your Network</h1>
+        <p class="text-center">This is a simple network diagram including servers, switches, computers, and gateways.</p>
+        <div id="network"></div>
+    </div>
+    <script>
+        fetch('/network')
+            .then(response => response.json())
+            .then(data => {
+                const cy = cytoscape({
+                    container: document.getElementById('network'),
+                    elements: {
+                        nodes: data.nodes.map(node => ({
+                            data: { id: node.id, label: node.label, type: node.type }
+                        })),
+                        edges: data.edges.map(edge => ({
+                            data: { source: edge.from, target: edge.to }
+                        }))
+                    },
+                    style: [
+                        {
+                            selector: 'node',
+                            style: {
+                                'label': 'data(label)',
+                                'text-valign': 'bottom',
+                                'color': '#000',
+                                'background-color': '#fff',
+                                'background-image': ele => {
+                                    switch(ele.data('type')) {
+                                        case 'server': return 'https://img.icons8.com/ios-filled/50/000000/server.png';
+                                        case 'switch': return 'https://img.icons8.com/ios-filled/50/000000/network-switch.png';
+                                        case 'computer': return 'https://img.icons8.com/ios-filled/50/000000/computer.png';
+                                        case 'gateway': return 'https://img.icons8.com/ios-filled/50/000000/router.png';
+                                        default: return '';
+                                    }
+                                },
+                                'background-fit': 'contain',
+                                'background-clip': 'none',
+                                'shape': 'round-rectangle',
+                                'width': 50,
+                                'height': 50,
+                                'text-margin-y': -10
+                            }
+                        },
+                        {
+                            selector: 'edge',
+                            style: {
+                                'width': 2,
+                                'line-color': '#ccc',
+                                'target-arrow-color': '#ccc',
+                                'target-arrow-shape': 'triangle'
+                            }
+                        },
+                        {
+                            selector: 'node:hover',
+                            style: {
+                                'background-color': '#e0e0e0',
+                                'transition-property': 'background-color',
+                                'transition-duration': '0.5s'
+                            }
+                        },
+                        {
+                            selector: 'edge:hover',
+                            style: {
+                                'line-color': '#888',
+                                'target-arrow-color': '#888',
+                                'transition-property': 'line-color, target-arrow-color',
+                                'transition-duration': '0.5s'
+                            }
+                        }
+                    ],
+                    layout: {
+                        name: 'breadthfirst',
+                        directed: true,
+                        roots: '#gateway',
+                        padding: 10
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
